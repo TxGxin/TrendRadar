@@ -465,6 +465,7 @@ class NotificationDispatcher:
                 ai_analysis=ai,
                 display_regions=display_regions or {},
                 standalone_data=sd,
+                dingtalk_secret=self.config.get("DINGTALK_SECRET", ""),
             ),
         )
 
