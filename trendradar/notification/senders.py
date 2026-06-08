@@ -14,7 +14,7 @@
 
 每个发送函数都支持分批发送，并通过参数化配置实现与 CONFIG 的解耦。
 """
-
+import hashlib, hmac, base64
 import smtplib
 import time
 import json
@@ -244,6 +244,7 @@ def send_to_dingtalk(
     ai_analysis: Any = None,
     display_regions: Optional[Dict] = None,
     standalone_data: Optional[Dict] = None,
+    dingtalk_secret: str = "",
 ) -> bool:
     """
     发送到钉钉（支持分批发送，支持热榜+RSS合并+独立展示区）
@@ -312,6 +313,15 @@ def send_to_dingtalk(
                 "text": batch_content,
             },
         }
+
+        if dingtalk_secret:
+            timestamp = str(round(time.time() * 1000))
+            secret_enc = dingtalk_secret.encode('utf-8')
+            string_to_sign = f'{timestamp}\n{dingtalk_secret}'
+            hmac_code = hmac.new(secret_enc, string_to_sign.encode('utf-8'), digestmod=hashlib.sha256).digest()
+            sign = base64.b64encode(hmac_code).decode('utf-8')
+            payload["timestamp"] = timestamp
+            payload["sign"] = sign
 
         try:
             response = requests.post(
